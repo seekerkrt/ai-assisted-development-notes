@@ -1,0 +1,60 @@
+# ~/.codex/config.toml
+#
+# Codexの実運用例。
+# 2026年9月時点のProプラン向け構成をベースにしています。
+#
+# モデル名、context window、利用可能な設定項目などは
+# 将来変更される可能性があるため、そのままコピーするのではなく
+# 自分の環境に合わせて調整してください。
+
+model = "gpt-6-astra"
+
+# 大きなrepositoryや長時間作業向け
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
+
+# 普段の設計・実装・監査ではhighを常用
+model_reasoning_effort = "high"
+
+model_verbosity = "medium"
+
+# 原則として必要な操作は確認を挟む
+approval_policy = "on-request"
+approvals_reviewer = "user"
+
+# repository workspaceに加えてhandoff保存先だけ書き込み可能にする
+default_permissions = "workspace-handoff"
+
+[permissions.workspace-handoff]
+description = "Current workspace plus handoff directory"
+extends = ":workspace"
+
+[permissions.workspace-handoff.workspace_roots]
+"~/handoff" = true
+
+# Web検索は必要に応じて利用
+web_search = "cached"
+
+service_tier = "default"
+personality = "pragmatic"
+
+[tui]
+status_line = [
+    "model-with-reasoning",
+    "current-dir",
+    "project-name",
+    "git-branch",
+    "branch-changes",
+    "context-used",
+    "five-hour-limit",
+    "weekly-limit",
+]
+status_line_use_colors = true
+theme = "solarized-dark"
+
+# OpenAI公式Developer Docsを参照するMCP server
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+[features]
+prevent_idle_sleep = true
