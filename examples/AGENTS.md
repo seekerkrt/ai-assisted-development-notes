@@ -1,5 +1,9 @@
 # 個人共通 AGENTS.md
 
+> [!NOTE]
+> これは私が実際に使用している個人向けAGENTS.mdの一例です。
+> すべての環境にそのまま適用することを推奨するものではありません。
+
 ## 位置づけと優先順位
 
 この文書は、すべてのrepositoryへ適用する言語非依存の共通契約である。作業固有のworkflow、検証手順、長い出力の保存、出力形式、失敗時処理は各Skillを正とし、ここへ複製しない。project固有の入口・architecture・build・coding規約はrepository側へ置く。
