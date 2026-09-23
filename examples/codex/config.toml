@@ -1,7 +1,7 @@
-model = "gpt-6-astra"
+model = "gpt-6-sol"
 model_context_window = 1000000
 model_auto_compact_token_limit = 900000
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 model_verbosity = "medium"
 approval_policy = "on-request"
 default_permissions = "workspace-dev"
@@ -9,6 +9,10 @@ web_search = "cached"
 approvals_reviewer = "user"
 service_tier = "default"
 personality = "pragmatic"
+
+[features.network_proxy]
+enabled = true
+allow_local_binding = true
 
 [permissions.workspace-dev]
 description = "Current workspace plus handoff and ramdisk directories"
@@ -18,9 +22,17 @@ extends = ":workspace"
 "~/handoff" = true
 "/ramdisk" = true
 
+[permissions.workspace-dev.network]
+enabled = true
+allow_local_binding = true
+
 [agents]
 enabled = true
-max_concurrent_threads_per_session = 4
+max_concurrent_threads_per_session = 3
+
+[agents.handoff]
+description = "Create the final handoff only. Do not implement or modify production work."
+config_file = "./agents/handoff-luna.toml"
 
 [tui]
 status_line = [
@@ -30,11 +42,11 @@ status_line = [
     "git-branch",
     "branch-changes",
     "context-used",
-    "five-hour-limit",
     "weekly-limit",
 ]
 status_line_use_colors = true
 theme = "solarized-dark"
+screen_reader_detection_done = true
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
@@ -98,4 +110,3 @@ enabled = true
 
 [shell_environment_policy]
 inherit = "core"
-
