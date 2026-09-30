@@ -1,4 +1,4 @@
-model = "gpt-6-sol"
+model = "gpt-6.1-sol"
 model_context_window = 1000000
 model_auto_compact_token_limit = 900000
 model_reasoning_effort = "xhigh"
@@ -14,13 +14,16 @@ personality = "pragmatic"
 enabled = true
 allow_local_binding = true
 
+[permissions.workspace-dev.network.unix_sockets]
+"/run/docker.sock" = "allow"
+"/var/run/docker.sock" = "allow"
+
 [permissions.workspace-dev]
-description = "Current workspace plus handoff and ramdisk directories"
+description = "Current workspace plus handoff directory"
 extends = ":workspace"
 
 [permissions.workspace-dev.workspace_roots]
 "~/handoff" = true
-"/ramdisk" = true
 
 [permissions.workspace-dev.network]
 enabled = true
@@ -28,11 +31,26 @@ allow_local_binding = true
 
 [agents]
 enabled = true
-max_concurrent_threads_per_session = 3
+max_concurrent_threads_per_session = 5
+
+[agents.coder]
+description = "合意済みscopeに従ってproduction codeと必要なtestを実装する実装担当"
+config_file = "./agents/coder.toml"
+
+[agents.auditor]
+description = "実装の正しさ、回帰、設計上の不変条件、テスト不足を独立して確認するread-only監査役"
+config_file = "./agents/auditor.toml"
+
+[agents.verifier]
+description = "実装完了後の変更を独立した立場から検証する検証役"
+config_file = "./agents/verifier.toml"
 
 [agents.handoff]
 description = "Create the final handoff only. Do not implement or modify production work."
 config_file = "./agents/handoff-luna.toml"
+
+[shell_environment_policy]
+inherit = "all"
 
 [tui]
 status_line = [
@@ -45,28 +63,18 @@ status_line = [
     "weekly-limit",
 ]
 status_line_use_colors = true
-theme = "solarized-dark"
+theme = "Tokyo Night Storm"
 screen_reader_detection_done = true
 
 [tui.model_availability_nux]
-"gpt-5.5" = 4
-"gpt-5.6-sol" = 4
-gpt-6-astra = 4
+"gpt-6.1-sol" = 3
 
 [notice]
 hide_full_access_warning = true
 hide_rate_limit_model_nudge = true
 
-[notice.model_migrations]
-"gpt-5.4" = "gpt-5.5"
-
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
-
-[mcp_servers.node_repl]
-args = []
-command = "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
-startup_timeout_sec = 120
 
 [features]
 prevent_idle_sleep = true
@@ -108,5 +116,7 @@ enabled = true
 [plugins."pyright-lsp@claude-plugins-official"]
 enabled = true
 
-[shell_environment_policy]
-inherit = "core"
+[desktop]
+followUpQueueMode = "steer"
+preventSleepWhileRunning = true
+

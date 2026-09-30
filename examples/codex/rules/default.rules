@@ -21,11 +21,11 @@ prefix_rule(
         "MAKEFLAGS",
         "-u",
         "MFLAGS",
-        "TMPDIR=/ramdisk",
+        "TMPDIR=/tmp",
         "make",
     ],
     decision="allow",
-    justification="MAKEFLAGSとMFLAGSを除去し、TMPDIR=/ramdiskを指定したmake実行を自動許可する",
+    justification="MAKEFLAGSとMFLAGSを除去し、TMPDIR=/tmpを指定したmake実行を自動許可する",
 )
 
 prefix_rule(

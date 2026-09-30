@@ -1,5 +1,5 @@
 ---
-name: github
+name: github-safe-ops
 description: GitHub repository、Issue、PR、review、Actions、release、branch、tag、repository設定、GitHub APIの調査・操作、またはlocal branch / remote / commitとGitHub対象の対応確認で使用する。read-onlyとmutationを分け、書き込みは対象と操作内容の明示依頼時だけ行い、認証情報を探索・変更しない。
 ---
 
