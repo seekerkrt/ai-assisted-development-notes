@@ -7,7 +7,7 @@ approval_policy = "on-request"
 default_permissions = "workspace-dev"
 web_search = "cached"
 approvals_reviewer = "user"
-service_tier = "default"
+service_tier = "fast"
 personality = "pragmatic"
 
 [features.network_proxy]
@@ -19,11 +19,12 @@ allow_local_binding = true
 "/var/run/docker.sock" = "allow"
 
 [permissions.workspace-dev]
-description = "Current workspace plus handoff directory"
+description = "Current workspace plus handoff and ramdisk directories"
 extends = ":workspace"
 
 [permissions.workspace-dev.workspace_roots]
 "~/handoff" = true
+"/ramdisk" = true
 
 [permissions.workspace-dev.network]
 enabled = true
@@ -35,19 +36,19 @@ max_concurrent_threads_per_session = 5
 
 [agents.coder]
 description = "合意済みscopeに従ってproduction codeと必要なtestを実装する実装担当"
-config_file = "./agents/coder.toml"
+config_file = "../dotfiles/stow/codex/.codex/agent-configs/coder.toml"
 
 [agents.auditor]
 description = "実装の正しさ、回帰、設計上の不変条件、テスト不足を独立して確認するread-only監査役"
-config_file = "./agents/auditor.toml"
+config_file = "../dotfiles/stow/codex/.codex/agent-configs/auditor.toml"
 
 [agents.verifier]
 description = "実装完了後の変更を独立した立場から検証する検証役"
-config_file = "./agents/verifier.toml"
+config_file = "../dotfiles/stow/codex/.codex/agent-configs/verifier.toml"
 
 [agents.handoff]
 description = "Create the final handoff only. Do not implement or modify production work."
-config_file = "./agents/handoff-luna.toml"
+config_file = "../dotfiles/stow/codex/.codex/agent-configs/handoff-luna.toml"
 
 [shell_environment_policy]
 inherit = "all"
@@ -65,9 +66,10 @@ status_line = [
 status_line_use_colors = true
 theme = "Tokyo Night Storm"
 screen_reader_detection_done = true
+fullscreen_transcript = false
 
 [tui.model_availability_nux]
-"gpt-6.1-sol" = 3
+"gpt-6.1-sol" = 4
 
 [notice]
 hide_full_access_warning = true
@@ -75,6 +77,11 @@ hide_rate_limit_model_nudge = true
 
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
+
+[mcp_servers.node_repl]
+args = []
+command = "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
 
 [features]
 prevent_idle_sleep = true

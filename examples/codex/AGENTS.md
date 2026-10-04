@@ -55,7 +55,7 @@ repositoryの文書が別のsource of truthや優先順位を指定している�
 
 ### Routing
 
-ユーザー依頼と必要な成果物に応じてSkillを選び、audit → verify → commit-prepの固定pipelineにはしない。
+ユーザー依頼と必要な成果物に応じてSkillを選び、audit → validate → commit-prepの固定pipelineにはしない。
 同一作業内のread-only情報は、対象と鮮度が十分なら再利用し、不足・変化がある範囲だけ再取得する。
 commit直前のstage対象・staged diff等、時点依存の状態はその時点で再確認する。
 
@@ -63,11 +63,11 @@ commit直前のstage対象・staged diff等、時点依存の状態はその時�
 - `c-conventions`: Cの生成、編集、review、およびCから利用するC互換headerや共有ABI境界。repositoryの`docs/coding-conventions.md`とbuild設定も追加で読む。
 - `cpp-conventions`: C++の生成、編集、review、およびC++から利用するC互換headerや共有ABI境界。repositoryの`docs/coding-conventions.md`とbuild設定も追加で読む。
 - `issue-slice`: GitHub Issueまたは明示されたPR単位のscope固定と、最小実装から検証までの統括。
-- `verify`: acceptance criteriaに対する検証選択・実行結果・環境・artifact・未完了状態を扱う。
+- `validate`: acceptance criteriaに対する検証選択・実行結果・環境・artifact・未完了状態を扱う。
   pass / fail / partial等の判定と、長い出力・作業artifactの保存規則を正とする。
 - `commit-prep`: 論理的なcommit単位、staged / unstaged / untrackedの分類、stage候補、message案。
-  既存verification evidenceの対象・鮮度を確認し、不足時だけverifyへ戻す。
-- `github`: GitHub repository、Issue、PR、Actions、release、branch、tag、APIの調査または操作。GitHubの認証境界もここを正とする。
+  既存verification evidenceの対象・鮮度を確認し、不足時だけvalidateへ戻す。
+- `github-safe-ops`: GitHub repository、Issue、PR、Actions、release、branch、tag、APIの調査または操作。GitHubの認証境界もここを正とする。
 - `handoff`: 通常のhandoffまたは引き継ぎメモを明示的に求められた場合の永続handoff。
 - `handoff-inline`: inline、本文だけ、保存不要、file不要が明示されたhandoff。
 - `handoff-archive`: 選別済みの外部handoff snapshotを内容不変でrepositoryへ収蔵する明示依頼。
@@ -100,19 +100,24 @@ commit直前のstage対象・staged diff等、時点依存の状態はその時�
 
 ## マルチエージェント運用
 
-規模の大きい監査・調査・検証では、作業を独立した read-only の範囲に分割できる場合、
+規模の大きい監査・調査・検証では、production codeやtestを変更しない独立した範囲へ分割できる場合、
 必要に応じてサブエージェントを利用する。
 
-原則として、同時に動かすサブエージェントは最大333つまでとする。
+scopeが十分に確定した実装では、実装担当を1つのcoderサブエージェントへ委任してよい。
+実装担当は原則として1つに限定し、同一の実装箇所を複数エージェントへ同時に変更させない。
 
-ただし、並列化そのものを目的として不要なサブエージェントを起動してはならない。
-作業規模と独立性に応じて必要最小限の数を選択する。
+原則として、同時に動かすサブエージェントは最大5つまでとする。
 
-並列化できる大きな仕事だけサブエージェントを使う。
-単純な調査、single-file edit、強い依存関係がある作業では使わない。
+ただし、並列化そのものや役割分離そのものを目的として
+不要なサブエージェントを起動してはならない。
+作業規模、独立性、委任による利点に応じて必要最小限の数を選択する。
+
+単純な調査、軽微なsingle-file edit、強い依存関係があり委任の利点がない作業では、
+親エージェント自身で処理してよい。
 
 サブエージェントへの委任に適している作業:
 
+- scopeが確定した独立した実装
 - 実装の正しさ・仕様適合性の監査
 - 回帰リスクやテストカバレッジの分析
 - build / test / log の分析
@@ -121,20 +126,26 @@ commit直前のstage対象・staged diff等、時点依存の状態はその時�
 
 基本的な作業フローは以下とする。
 
-監査 → 実装 → 独立検証
+監査・scope確認 → 実装 → 独立検証
+
+必要な事前調査やscope確認を親エージェント自身で十分に行える場合、
+形式的な監査サブエージェントを必須とはしない。
+
+実装をcoderへ委任する場合、親エージェントはscope、関連authority、
+変更してよい範囲、必要なvalidationを明確に渡す。
 
 監査および検証では、作業規模が大きく、
 互いに独立した観点へ分割できる場合は並列化を優先する。
 
 親エージェントは以下を行うこと。
 
-1. サブエージェントごとに重複しにくい明確な調査範囲を定める。
+1. サブエージェントごとに重複しにくい明確な作業範囲を定める。
 2. 必要なサブエージェントがすべて完了するまで待つ。
 3. 各エージェントの結果と根拠を確認し、矛盾があれば自ら解決する。
 4. 最終的な判断と結論は親エージェント自身が行う。
 5. サブエージェントの要約だけを根拠とせず、必要に応じて実際のコード・diff・テスト結果を確認する。
 
 同一の実装箇所を複数エージェントが同時に変更することは原則として避ける。
-実装フェーズでは、原則として1つのエージェントが変更を担当する。
+実装フェーズでは、原則として1つのcoderまたは親エージェントだけが変更を担当する。
 
-既存のユーザー変更を尊重し、依頼されていない変更や cleanup を勝手に行わない。
+既存のユーザー変更を尊重し、依頼されていない変更やcleanupを勝手に行わない。
