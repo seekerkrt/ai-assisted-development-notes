@@ -1,21 +1,28 @@
 model = "gpt-6.1-sol"
 model_context_window = 1000000
 model_auto_compact_token_limit = 900000
-model_reasoning_effort = "max"
+model_reasoning_effort = "xhigh"
 model_verbosity = "medium"
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 default_permissions = "workspace-dev"
 web_search = "cached"
-service_tier = "fast"
+service_tier = "default"
 personality = "pragmatic"
 
+[browser_use.default_origin_policy]
+access = "allow"
+uploads = "deny"
+full_cdp_access = "deny"
+
+[computer_use]
+default_app_access = "allow"
 
 [auto_review]
 policy = """
 以下の条件を満たす、非破壊的なローカル開発コマンドは承認してよい。
 
-- 対象がリポジトリ配下、/ramdisk、/tmp、~/handoff に限定されている
+- 対象がリポジトリ配下、/ramdisk、/tmp、~/handoffs に限定されている
 - ビルド、テスト、検証、静的解析、フォーマット、lint が目的である
 - cmake、ninja、make、ctest、コンパイラ、リンカ、テストランナーなど通常の開発ツールである
 - AF_UNIX socket を使用するテストなど、sandbox の制約だけが理由で sandbox 外実行を必要としている
@@ -37,6 +44,10 @@ AF_UNIX socket の作成制限によって sandbox 外実行を要求してい�
 - /etc やシステム領域への書き込み
 - ユーザーが明示的に許可していない外部への破壊的変更
 - 上記の安全条件に該当するか判断できない操作
+- 購入、契約、プラン変更、無料トライアル開始、
+  従量課金の有効化、決済情報の入力・送信など、
+  金銭的副作用のある操作。
+  ユーザーの明示依頼があっても自動承認しない。
 
 判断に迷う場合はユーザーへ承認を求めること。
 """
@@ -54,8 +65,10 @@ description = "Current workspace plus handoff and ramdisk directories"
 extends = ":workspace"
 
 [permissions.workspace-dev.workspace_roots]
-"~/handoff" = true
 "/ramdisk" = true
+
+[permissions.workspace-dev.filesystem]
+"~/handoffs" = "write"
 
 [permissions.workspace-dev.network]
 enabled = true
@@ -70,13 +83,13 @@ inherit = "all"
 
 [tui]
 status_line = [
-    "model-with-reasoning",
-    "current-dir",
-    "project-name",
-    "git-branch",
-    "branch-changes",
-    "context-used",
-    "weekly-limit",
+  "model-with-reasoning",
+  "current-dir",
+  "project-name",
+  "git-branch",
+  "branch-changes",
+  "context-used",
+  "weekly-limit",
 ]
 status_line_use_colors = true
 theme = "Tokyo Night Storm"
